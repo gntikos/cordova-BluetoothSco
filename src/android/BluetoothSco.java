@@ -46,30 +46,40 @@ public class BluetoothSco extends CordovaPlugin {
 	}
 	
 	@Override
-	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+	public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
 		
 		if (action.equals("start")) {
-			try {
-				startBtSco();
-				callbackContext.success("Bluetooth SCO connection initialized.");
-				return true;
-			} catch (Exception e) {
-				callbackContext.error(e.getMessage());
-				return false;
-			}
+			this.cordova.getThreadPool().execute(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						startBtSco();
+						callbackContext.success("Bluetooth SCO connection initialized.");
+					} catch (Exception e) {
+						callbackContext.error(e.getMessage());
+					}
+				}	
+			});
+			
+			return true;
 		}
 		
 		if (action.equals("stop")) {
-			try {
-				stopBtSco();
-				callbackContext.success("Bluetooth SCO connection terminated.");
-				return true;
-			} catch (Exception e) {
-				callbackContext.error(e.getMessage());
-				return false;
-			}
+			this.cordova.getThreadPool().execute(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						stopBtSco();
+						callbackContext.success("Bluetooth SCO connection terminated.");
+					} catch (Exception e) {
+						callbackContext.error(e.getMessage());
+					}
+				}
+			});
+			
+			return true;
 		}
 		
-		return true;
+		return false;
 	}
 }
