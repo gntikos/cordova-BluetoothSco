@@ -22,5 +22,11 @@
                 <param name="android-package" value="gntikos.plugin.bluetoothsco.BluetoothSco" />
             </feature>
         </config-file>
+        
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+			<uses-permission android:name="android.permission.BLUETOOTH"/>
+			<uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+			<uses-permission android:name="android.permission.BROADCAST_STICKY"/>
+		</config-file>
     </platform>
 </plugin>
