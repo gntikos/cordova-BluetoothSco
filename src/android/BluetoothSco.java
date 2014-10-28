@@ -4,6 +4,8 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
@@ -16,14 +18,23 @@ import android.media.AudioManager;
 public class BluetoothSco extends CordovaPlugin {
 	
 	private final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
-	
+    
 	@Override
 	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
 		
 		if(this.cordova.getActivity().isFinishing()) return true;
-		
+        
 		if (action.equals("start")) {
-			this.startScoConnection(callbackContext);
+            boolean enablePlayback = false;
+            
+            try {
+                JSONObject parameters = args.getJSONObject(0);
+                enablePlayback = parameters.getBoolean("enablePlayback");
+            } catch (JSONException e) {
+                // just catch the damn thing.
+            }
+            
+			this.startScoConnection(callbackContext, enablePlayback);
 			return true;
 		} 
 		else if (action.equals("stop")) {
@@ -35,7 +46,7 @@ public class BluetoothSco extends CordovaPlugin {
 	}
 	
 
-	private synchronized void startScoConnection(final CallbackContext callbackContext) {
+	private synchronized void startScoConnection(final CallbackContext callbackContext, final boolean enablePlayback) {
 		final CordovaInterface cordova = this.cordova;
 		
 		Runnable runnable = new Runnable() {
@@ -77,6 +88,10 @@ public class BluetoothSco extends CordovaPlugin {
 				
 				audioManager.setBluetoothScoOn(true);
 				audioManager.startBluetoothSco();
+                
+                if (enablePlayback) {
+                    audioManager.setMode(audioManager.MODE_IN_CALL);
+                }
 			}
 		};
 		
@@ -97,6 +112,8 @@ public class BluetoothSco extends CordovaPlugin {
 				try {
 					audioManager.stopBluetoothSco();
 					audioManager.setBluetoothScoOn(false);
+                    audioManager.setMode(audioManager.MODE_NORMAL);
+                        
 					callbackContext.success();
 				} catch (Exception e) {
 					callbackContext.error(e.getMessage());
