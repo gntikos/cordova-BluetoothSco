@@ -5,7 +5,7 @@ cordova-BluetoothSco
 How to use
 ----------
 
-* ####Create a SCO link
+####Create a SCO link
 ```js
 BluetoothSco.start(function() {
     // success callback
@@ -16,7 +16,7 @@ BluetoothSco.start(function() {
 
 The last argument is optional. If ```enablePlayback``` is set ```false``` (or not at all), the link is used to route audio <b> from </b> the Bluetooth headset <b> to </b> the phone (one-way link). If set ```true``` as above, a two-way link is created.
 
-* ####Remove SCO link
+####Remove SCO link
 
 ```js
 BluetoothSco.start(function() {
