@@ -16,15 +16,15 @@ import android.media.AudioManager;
 
 
 public class BluetoothSco extends CordovaPlugin {
-	
-	private final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
     
-	@Override
-	public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
-		
-		if(this.cordova.getActivity().isFinishing()) return true;
+    private final BluetoothAdapter btAdapter = BluetoothAdapter.getDefaultAdapter();
+    
+    @Override
+    public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
         
-		if (action.equals("start")) {
+        if(this.cordova.getActivity().isFinishing()) return true;
+        
+        if (action.equals("start")) {
             boolean enablePlayback = false;
             
             try {
@@ -34,94 +34,94 @@ public class BluetoothSco extends CordovaPlugin {
                 // just catch the damn thing.
             }
             
-			this.startScoConnection(callbackContext, enablePlayback);
-			return true;
-		} 
-		else if (action.equals("stop")) {
-			this.stopScoConnection(callbackContext);
-			return true;
-		}
-		
-		return false;
-	}
-	
+            this.startScoConnection(callbackContext, enablePlayback);
+            return true;
+        } 
+        else if (action.equals("stop")) {
+            this.stopScoConnection(callbackContext);
+            return true;
+        }
+        
+        return false;
+    }
+    
 
-	private synchronized void startScoConnection(final CallbackContext callbackContext, final boolean enablePlayback) {
-		final CordovaInterface cordova = this.cordova;
-		
-		Runnable runnable = new Runnable() {
+    private synchronized void startScoConnection(final CallbackContext callbackContext, final boolean enablePlayback) {
+        final CordovaInterface cordova = this.cordova;
+        
+        Runnable runnable = new Runnable() {
 
-			@Override
-			public void run() {
-				if (btAdapter == null) {
-					callbackContext.error("This device does not support Bluetooth");
-					return;
-				}
-				else if (! btAdapter.isEnabled()) {
-					callbackContext.error("Bluetooth is not enabled");
-					return;
-				} 
-				
-				cordova.getActivity().registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void run() {
+                if (btAdapter == null) {
+                    callbackContext.error("This device does not support Bluetooth");
+                    return;
+                }
+                else if (! btAdapter.isEnabled()) {
+                    callbackContext.error("Bluetooth is not enabled");
+                    return;
+                } 
+                
+                cordova.getActivity().registerReceiver(new BroadcastReceiver() {
 
-					@Override
-					public void onReceive(Context context, Intent intent) {
-						int state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1);
-						
-						if (state == AudioManager.SCO_AUDIO_STATE_CONNECTED) {
-							callbackContext.success();
-							context.unregisterReceiver(this);
-						}
-//						else if (state == AudioManager.SCO_AUDIO_STATE_DISCONNECTED) {
-//							callbackContext.error("Could not start Bluetooth SCO connection");
-//							context.unregisterReceiver(this);
-//						}
-					}
-					
-				}, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
-				
-				AudioManager audioManager = (AudioManager) cordova.getActivity().getSystemService(Context.AUDIO_SERVICE);
-				if (! audioManager.isBluetoothScoAvailableOffCall()) {
-					callbackContext.error("Off-call Bluetooth audio not supported on this device.");
-					return;
-				}
-				
-				audioManager.setBluetoothScoOn(true);
-				audioManager.startBluetoothSco();
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        int state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1);
+                        
+                        if (state == AudioManager.SCO_AUDIO_STATE_CONNECTED) {
+                            callbackContext.success();
+                            context.unregisterReceiver(this);
+                        }
+//                      else if (state == AudioManager.SCO_AUDIO_STATE_DISCONNECTED) {
+//                          callbackContext.error("Could not start Bluetooth SCO connection");
+//                          context.unregisterReceiver(this);
+//                      }
+                    }
+                    
+                }, new IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED));
+                
+                AudioManager audioManager = (AudioManager) cordova.getActivity().getSystemService(Context.AUDIO_SERVICE);
+                if (! audioManager.isBluetoothScoAvailableOffCall()) {
+                    callbackContext.error("Off-call Bluetooth audio not supported on this device.");
+                    return;
+                }
+                
+                audioManager.setBluetoothScoOn(true);
+                audioManager.startBluetoothSco();
                 
                 if (enablePlayback) {
                     audioManager.setMode(audioManager.MODE_IN_CALL);
                 }
-			}
-		};
-		
-		this.cordova.getActivity().runOnUiThread(runnable);
-	}
-	
-	private synchronized void stopScoConnection(final CallbackContext callbackContext) {
-		
-		final CordovaInterface cordova = this.cordova;
-		
-		Runnable runnable = new Runnable() {
+            }
+        };
+        
+        this.cordova.getActivity().runOnUiThread(runnable);
+    }
+    
+    private synchronized void stopScoConnection(final CallbackContext callbackContext) {
+        
+        final CordovaInterface cordova = this.cordova;
+        
+        Runnable runnable = new Runnable() {
 
-			@Override
-			public void run() {
-				
-				AudioManager audioManager = (AudioManager) cordova.getActivity().getSystemService(Context.AUDIO_SERVICE);
-				
-				try {
-					audioManager.stopBluetoothSco();
-					audioManager.setBluetoothScoOn(false);
+            @Override
+            public void run() {
+                
+                AudioManager audioManager = (AudioManager) cordova.getActivity().getSystemService(Context.AUDIO_SERVICE);
+                
+                try {
+                    audioManager.stopBluetoothSco();
+                    audioManager.setBluetoothScoOn(false);
                     audioManager.setMode(audioManager.MODE_NORMAL);
                         
-					callbackContext.success();
-				} catch (Exception e) {
-					callbackContext.error(e.getMessage());
-				}
-			}
-		};
-		
-		this.cordova.getActivity().runOnUiThread(runnable);
-	}
+                    callbackContext.success();
+                } catch (Exception e) {
+                    callbackContext.error(e.getMessage());
+                }
+            }
+        };
+        
+        this.cordova.getActivity().runOnUiThread(runnable);
+    }
 
 }
